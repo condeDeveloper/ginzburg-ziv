@@ -1,0 +1,47 @@
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  testes:
+    runs-on: ${{ matrix.so }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        so: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # O juiz monta todo subconjunto de n elementos e soma; a busca funde os
+      # subconjuntos que dao o mesmo (quantos, resto). Os dois sao conferidos
+      # multiconjunto por multiconjunto, nao so no total.
+      - name: testes
+        run: dotnet test testes/GinzburgZiv.Testes/GinzburgZiv.Testes.csproj -c Release --nologo -v q
+
+      - name: a varredura dos dois tamanhos, n de 2 a 8
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- tabela
+
+      - name: o juiz contra a tabela de alcance
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- juiz
+
+      - name: a receita das duas classes
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- receita
+
+      - name: que fracao escapa com 2n-2
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- fracao
+
+      - name: como a fuga morre, tamanho por tamanho
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- limiar
+
+      - name: o preco dos dois caminhos
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- preco
